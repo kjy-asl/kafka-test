@@ -14,8 +14,8 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 
 /**
- * Producer-side Kafka configuration. We build everything manually instead of relying on auto
- * configuration so that the individual moving parts are more visible during study.
+ * Kafka Producer 구성을 명시적으로 정의한 클래스입니다. 자동 설정에만 의존하지 않고 수동으로 작성해
+ * 학습 시 각 설정 요소를 더 분명하게 파악할 수 있도록 했습니다.
  */
 @Configuration
 public class KafkaProducerConfig {

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST entrypoint used by clients (or other services) to create orders. Keeping HTTP concerns here
- * and delegating everything else to {@link PlaceOrderService} keeps the boundary clean.
+ * 주문 생성을 위한 REST 진입점입니다. HTTP 관련 처리는 이 클래스에서 끝내고, 실제 비즈니스 로직은
+ * {@link PlaceOrderService}로 위임해 책임 경계를 명확하게 유지합니다.
  */
 @RestController
 @RequestMapping("/api/orders")

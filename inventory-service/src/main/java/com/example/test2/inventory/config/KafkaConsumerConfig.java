@@ -14,8 +14,8 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.HashMap;
 
 /**
- * Consumer configuration explicitly wires up the JSON deserializer so that the shared event record
- * is auto-converted when it arrives from Kafka.
+ * Kafka Consumer 설정을 명시적으로 구성해 공통 이벤트 레코드가 Kafka에서 수신되는 즉시
+ * JSON → 객체로 변환되도록 만든 클래스입니다.
  */
 @Configuration
 public class KafkaConsumerConfig {

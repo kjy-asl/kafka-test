@@ -1,10 +1,10 @@
 plugins {
-    id 'org.springframework.boot' version '3.3.2' apply false
+    id 'org.springframework.boot' version '3.2.5' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
 }
 
 ext {
-    springKafkaVersion = '3.2.4'
+    springKafkaVersion = '3.1.4'
 }
 
 subprojects {

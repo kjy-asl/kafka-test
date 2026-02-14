@@ -23,5 +23,5 @@ dependencies {
 }
 
 tasks.named('bootJar') {
-    archiveFileName = 'order-service.jar'
+    archiveFileName = 'member-service.jar'
 }

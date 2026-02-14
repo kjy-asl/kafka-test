@@ -4,15 +4,26 @@ plugins {
 }
 
 ext {
-    springKafkaVersion = '3.1.4'
+    set('springKafkaVersion', '3.1.4')
+    set('mysqlDriverVersion', '8.3.0')
 }
 
-subprojects {
-    group = 'com.example.test2'
+allprojects {
+    group = 'com.example.msa'
     version = '0.0.1-SNAPSHOT'
 
     repositories {
         mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
 
     tasks.withType(JavaCompile).configureEach {

@@ -1,6 +1,6 @@
-package com.example.test2.orders.config;
+package com.example.msa.order.config;
 
-import com.example.test2.common.events.OrderCreatedEvent;
+import com.example.msa.common.events.OrderCreatedEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;

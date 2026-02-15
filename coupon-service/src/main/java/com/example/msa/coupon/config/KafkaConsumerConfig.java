@@ -1,6 +1,6 @@
-package com.example.test2.inventory.config;
+package com.example.msa.coupon.config;
 
-import com.example.test2.common.events.OrderCreatedEvent;
+import com.example.msa.common.events.OrderCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -31,7 +31,7 @@ public class KafkaConsumerConfig {
         var configs = new HashMap<>(kafkaProperties.buildConsumerProperties(null));
         configs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        configs.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.test2.common.events");
+        configs.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.msa.common.events");
         configs.put(JsonDeserializer.VALUE_DEFAULT_TYPE, OrderCreatedEvent.class);
         return new DefaultKafkaConsumerFactory<>(configs);
     }

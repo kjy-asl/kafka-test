@@ -1,4 +1,4 @@
-package com.example.test2.inventory;
+package com.example.msa.coupon;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 추후 DB 연동이나 실제 재고 계산 로직을 추가할 수 있도록 여지를 남겨두었습니다.
  */
 @SpringBootApplication
-public class InventoryServiceApplication {
+public class CouponServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(InventoryServiceApplication.class, args);
+        SpringApplication.run(CouponServiceApplication.class, args);
     }
 }

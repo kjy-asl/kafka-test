@@ -1,7 +1,7 @@
-package com.example.test2.inventory.listener;
+package com.example.msa.coupon.listener;
 
-import com.example.test2.common.config.KafkaTopics;
-import com.example.test2.common.events.OrderCreatedEvent;
+import com.example.msa.common.config.KafkaTopics;
+import com.example.msa.common.events.OrderCreatedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -17,9 +17,9 @@ public class OrderCreatedListener {
 
     private static final Logger log = LoggerFactory.getLogger(OrderCreatedListener.class);
 
-    @KafkaListener(topics = KafkaTopics.ORDER_CREATED, groupId = "inventory-service")
+    @KafkaListener(topics = KafkaTopics.ORDER_CREATED_V1, groupId = "coupon-service")
     public void handle(@Payload OrderCreatedEvent event) {
-        log.info("[inventory-service] 주문 이벤트 수신 orderId={} product={} quantity={} createdAt={}",
-                event.orderId(), event.productCode(), event.quantity(), event.createdAt());
+        log.info("[coupon-service] 주문 이벤트 수신 orderId={} member={} amount={} items={}",
+                event.orderId(), event.memberId(), event.totalAmount(), event.items().size());
     }
 }

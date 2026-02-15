@@ -23,5 +23,24 @@ public class ProcessedEvent {
     @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;
 
-    // getters/setters
+    protected ProcessedEvent() {
+    }
+
+    private ProcessedEvent(String eventType, String eventKey) {
+        this.eventType = eventType;
+        this.eventKey = eventKey;
+        this.processedAt = LocalDateTime.now();
+    }
+
+    public static ProcessedEvent of(String eventType, String eventKey) {
+        return new ProcessedEvent(eventType, eventKey);
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public String getEventKey() {
+        return eventKey;
+    }
 }

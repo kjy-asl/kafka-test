@@ -25,5 +25,19 @@ public class CouponTemplate {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    // getters/setters
+    public Long getId() {
+        return id;
+    }
+
+    public String getTemplateCode() {
+        return templateCode;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }

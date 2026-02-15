@@ -30,5 +30,47 @@ public class Coupon {
     @Column(name = "status", nullable = false)
     private String status;
 
-    // getters/setters
+    public Long getId() {
+        return id;
+    }
+
+    public CouponTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(CouponTemplate template) {
+        this.template = template;
+    }
+
+    public Long getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    public LocalDateTime getIssuedAt() {
+        return issuedAt;
+    }
+
+    public void setIssuedAt(LocalDateTime issuedAt) {
+        this.issuedAt = issuedAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

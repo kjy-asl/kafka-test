@@ -38,5 +38,28 @@ public class Event {
         this.conditions.add(condition);
     }
 
-    // getters/setters
+    public Long getId() {
+        return id;
+    }
+
+    public String getTemplateId() {
+        return templateId;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public List<EventCondition> getConditions() {
+        return conditions;
+    }
+
+    public boolean isActive(LocalDate date) {
+        return (date.isEqual(startDate) || date.isAfter(startDate))
+                && (date.isEqual(endDate) || date.isBefore(endDate));
+    }
 }

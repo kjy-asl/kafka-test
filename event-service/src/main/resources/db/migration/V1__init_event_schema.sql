@@ -19,7 +19,7 @@ CREATE TABLE event_conditions (
 
 CREATE TABLE processed_event (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_id BIGINT NOT NULL,
+    event_id BIGINT NULL,
     event_type VARCHAR(100) NOT NULL,
     event_key VARCHAR(100) NOT NULL,
     processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

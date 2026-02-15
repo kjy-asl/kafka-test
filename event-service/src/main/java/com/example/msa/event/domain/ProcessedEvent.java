@@ -14,7 +14,7 @@ public class ProcessedEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false)
+    @Column(name = "event_id")
     private Long eventId;
 
     @Column(name = "event_type", nullable = false)
@@ -26,5 +26,29 @@ public class ProcessedEvent {
     @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;
 
-    // getters/setters
+    protected ProcessedEvent() {
+    }
+
+    private ProcessedEvent(Long eventId, String eventType, String eventKey) {
+        this.eventId = eventId;
+        this.eventType = eventType;
+        this.eventKey = eventKey;
+        this.processedAt = LocalDateTime.now();
+    }
+
+    public static ProcessedEvent of(Long eventId, String eventType, String eventKey) {
+        return new ProcessedEvent(eventId, eventType, eventKey);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public String getEventKey() {
+        return eventKey;
+    }
 }

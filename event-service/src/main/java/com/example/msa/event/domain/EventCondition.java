@@ -20,9 +20,23 @@ public class EventCondition {
     @Column(name = "condition_value", nullable = false)
     private String conditionValue;
 
+    public Long getId() {
+        return id;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
     public void setEvent(Event event) {
         this.event = event;
     }
 
-    // getters/setters
+    public String getConditionValue() {
+        return conditionValue;
+    }
+
+    public EventConditionType type() {
+        return EventConditionType.from(conditionType);
+    }
 }

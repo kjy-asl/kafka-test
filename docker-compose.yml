@@ -1,70 +1,161 @@
-version: "3.8"
+version: "3.9"
 
 networks:
   msa-net:
     driver: bridge
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "22181:2181"
-    networks:
-      - msa-net
-
   kafka:
-    image: confluentinc/cp-kafka:7.6.1
-    depends_on:
-      - zookeeper
+    image: apache/kafka:3.7.0
+    container_name: kafka
+    networks: [msa-net]
     ports:
       - "9092:9092"
-      - "29092:29092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CLUSTER_ID: Z2luZXRlLW1zYS1rYWZrYQ==
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
       interval: 10s
-      timeout: 10s
-      retries: 5
-    networks:
-      - msa-net
+      timeout: 5s
+      retries: 10
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    networks: [msa-net]
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  member-db:
+    image: mysql:8.4
+    container_name: member-db
+    networks: [msa-net]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: memberdb
+    ports:
+      - "3307:3306"
+
+  order-db:
+    image: mysql:8.4
+    container_name: order-db
+    networks: [msa-net]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: orderdb
+    ports:
+      - "3308:3306"
+
+  event-db:
+    image: mysql:8.4
+    container_name: event-db
+    networks: [msa-net]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: eventdb
+    ports:
+      - "3309:3306"
+
+  coupon-db:
+    image: mysql:8.4
+    container_name: coupon-db
+    networks: [msa-net]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: coupondb
+    ports:
+      - "3310:3306"
+
+  member-service:
+    build:
+      context: .
+      dockerfile: member-service/Dockerfile
+    container_name: member-service
+    networks: [msa-net]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://member-db:3306/memberdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      member-db:
+        condition: service_started
+    ports:
+      - "8081:8080"
 
   order-service:
     build:
       context: .
       dockerfile: order-service/Dockerfile
+    container_name: order-service
+    networks: [msa-net]
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_APPLICATION_NAME: order-service
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://order-db:3306/orderdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       kafka:
         condition: service_healthy
+      order-db:
+        condition: service_started
     ports:
-      - "8081:8081"
-    networks:
-      - msa-net
+      - "8082:8080"
 
-  inventory-service:
+  event-service:
     build:
       context: .
-      dockerfile: inventory-service/Dockerfile
+      dockerfile: event-service/Dockerfile
+    container_name: event-service
+    networks: [msa-net]
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_APPLICATION_NAME: inventory-service
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://event-db:3306/eventdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       kafka:
         condition: service_healthy
+      event-db:
+        condition: service_started
     ports:
-      - "8082:8082"
-    networks:
-      - msa-net
+      - "8083:8080"
+
+  coupon-service:
+    build:
+      context: .
+      dockerfile: coupon-service/Dockerfile
+    container_name: coupon-service
+    networks: [msa-net]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://coupon-db:3306/coupondb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      coupon-db:
+        condition: service_started
+    ports:
+      - "8084:8080"

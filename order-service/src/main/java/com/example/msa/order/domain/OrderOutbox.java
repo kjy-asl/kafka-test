@@ -20,7 +20,8 @@ public class OrderOutbox {
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    @Column(name = "payload", columnDefinition = "json", nullable = false)
+    @Lob
+    @Column(name = "payload", nullable = false)
     private String payload;
 
     @Enumerated(EnumType.STRING)

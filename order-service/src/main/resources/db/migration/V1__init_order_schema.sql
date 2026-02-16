@@ -21,7 +21,7 @@ CREATE TABLE order_outbox (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     event_id CHAR(36) NOT NULL,
     event_type VARCHAR(100) NOT NULL,
-    payload JSON NOT NULL,
+    payload LONGTEXT NOT NULL,
     status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     sent_at TIMESTAMP NULL,

@@ -58,10 +58,15 @@ docker compose up -d --build
 - 추후 Testcontainers 기반 E2E 테스트 추가 예정
 
 ## 5. 트러블슈팅
-- Kafka 연결 오류 → docker-compose에서 kafka 컨테이너 상태 확인 (`docker compose logs kafka`)
-- Flyway 실패 → 각 서비스 DB 초기화 후 재실행 (`docker compose down -v && docker compose up -d`)
+- Kafka 연결 오류 → docker-compose에서 kafka 상태 확인 (`docker compose logs kafka`)
+- Flyway 실패 → `docker compose down -v` 로 DB 초기화 후 재기동
+- 포트 충돌 → compose 포트 조정 또는 사용 중인 프로세스 종료
+- Kafka UI 접속 실패 → `docker compose logs kafka-ui` 확인 후 재시작
+- Correlation ID 누락 → `X-Correlation-Id` 헤더 전달 또는 Correlation 필터 등록 확인
+
+자세한 조치 항목은 `docs/TROUBLESHOOTING.md` 참고.
 
 ## 6. TODO
 - member/event API 시드 엔드포인트 구현
 - 통합 테스트 추가(Testcontainers)
-- README에 더 상세한 이벤트 JSON 예시 및 트러블슈팅 확장
+- README와 문서에 이벤트 JSON 샘플/흐름 다이어그램 추가

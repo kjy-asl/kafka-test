@@ -66,7 +66,23 @@ docker compose up -d --build
 
 자세한 조치 항목은 `docs/TROUBLESHOOTING.md` 참고.
 
-## 6. TODO
+## 6. 이벤트 JSON 예시
+```json
+{
+  "eventId": "0dca8d66-6aa2-4e3b-9f5e-7af2668f6d30",
+  "occurredAt": "2026-02-16T14:00:00Z",
+  "correlationId": "08fb2738-0e7a-4e0e-9fe7-a1e8b5ad99b7",
+  "orderId": 1001,
+  "memberId": 501,
+  "totalAmount": 20000,
+  "items": [
+    {"productId":"BOOK-001","quantity":1,"unitPrice":15000},
+    {"productId":"PEN-002","quantity":2,"unitPrice":2500}
+  ]
+}
+```
+
+## 7. TODO
 - member/event API 시드 엔드포인트 구현
 - 통합 테스트 추가(Testcontainers)
-- README와 문서에 이벤트 JSON 샘플/흐름 다이어그램 추가
+- README와 문서에 흐름 다이어그램 추가

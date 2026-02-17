@@ -20,11 +20,15 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CLUSTER_ID: Z2luZXRlLW1zYS1rYWZrYQ==
+    volumes:
+      - kafka-data:/var/lib/kafka
+      - /tmp:/tmp
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server kafka:9092 --list || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 20s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -35,7 +39,8 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: kafka:9092
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: kafka:9092
     depends_on:
       kafka:
         condition: service_healthy
@@ -49,6 +54,8 @@ services:
       MYSQL_DATABASE: memberdb
     ports:
       - "3307:3306"
+    volumes:
+      - member-db-data:/var/lib/mysql
 
   order-db:
     image: mysql:8.4
@@ -59,6 +66,8 @@ services:
       MYSQL_DATABASE: orderdb
     ports:
       - "3308:3306"
+    volumes:
+      - order-db-data:/var/lib/mysql
 
   event-db:
     image: mysql:8.4
@@ -69,6 +78,8 @@ services:
       MYSQL_DATABASE: eventdb
     ports:
       - "3309:3306"
+    volumes:
+      - event-db-data:/var/lib/mysql
 
   coupon-db:
     image: mysql:8.4
@@ -79,6 +90,8 @@ services:
       MYSQL_DATABASE: coupondb
     ports:
       - "3310:3306"
+    volumes:
+      - coupon-db-data:/var/lib/mysql
 
   member-service:
     build:
@@ -132,10 +145,13 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MEMBER-SERVICE_BASE-URL: http://member-service:8080
     depends_on:
       kafka:
         condition: service_healthy
       event-db:
+        condition: service_started
+      member-service:
         condition: service_started
     ports:
       - "8083:8080"
@@ -159,3 +175,10 @@ services:
         condition: service_started
     ports:
       - "8084:8080"
+
+volumes:
+  kafka-data:
+  member-db-data:
+  order-db-data:
+  event-db-data:
+  coupon-db-data:

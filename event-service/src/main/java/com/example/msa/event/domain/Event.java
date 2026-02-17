@@ -62,4 +62,28 @@ public class Event {
         return (date.isEqual(startDate) || date.isAfter(startDate))
                 && (date.isEqual(endDate) || date.isBefore(endDate));
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

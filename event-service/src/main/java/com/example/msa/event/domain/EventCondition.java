@@ -36,6 +36,14 @@ public class EventCondition {
         return conditionValue;
     }
 
+    public void setConditionType(String conditionType) {
+        this.conditionType = conditionType;
+    }
+
+    public void setConditionValue(String conditionValue) {
+        this.conditionValue = conditionValue;
+    }
+
     public EventConditionType type() {
         return EventConditionType.from(conditionType);
     }

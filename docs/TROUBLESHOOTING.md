@@ -19,3 +19,7 @@
 ## Correlation ID 누락
 - 증상: 로그에 correlationId 가 비어있음
 - 조치: 요청 헤더에 `X-Correlation-Id`를 전달하거나, gateway 측에서 헤더를 추가. 내부 필터가 없는 서비스라면 `CorrelationIdFilter` 등록 상태 확인.
+
+## Kafka Connect / Debezium
+- 증상: `order.created.v1` 토픽에 이벤트가 나타나지 않음, `connect-init` 컨테이너가 실패, 혹은 Kafka Connect 8083 포트가 응답 없음
+- 조치: `docker compose logs kafka-connect` 로 커넥터 로그 확인, <http://localhost:8083/connectors/order-outbox-connector/status> 로 상태 확인. 문제가 있으면 `docker compose restart kafka-connect connect-init` 후 `connect-init` 이 재등록하도록 하거나 `curl -X PUT http://localhost:8083/connectors/order-outbox-connector/config ...` 로 수동 갱신. 또한 `order-db` binlog 설정이 적용되었는지 (`docker compose logs order-db`) 확인.

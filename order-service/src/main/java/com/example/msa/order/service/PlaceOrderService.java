@@ -1,9 +1,7 @@
 package com.example.msa.order.service;
 
-import com.example.msa.common.config.KafkaTopics;
 import com.example.msa.common.events.OrderCreatedEvent;
 import com.example.msa.common.tracing.CorrelationContext;
-import com.example.msa.common.tracing.CorrelationKafkaHelper;
 import com.example.msa.order.api.CreateOrderRequest;
 import com.example.msa.order.api.CreateOrderResponse;
 import com.example.msa.order.domain.Order;
@@ -13,34 +11,23 @@ import com.example.msa.order.repository.OrderOutboxRepository;
 import com.example.msa.order.repository.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class PlaceOrderService {
 
-    private static final Logger log = LoggerFactory.getLogger(PlaceOrderService.class);
-
     private final OrderRepository orderRepository;
     private final OrderOutboxRepository orderOutboxRepository;
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     public PlaceOrderService(OrderRepository orderRepository,
                              OrderOutboxRepository orderOutboxRepository,
-                             KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate,
                              ObjectMapper objectMapper) {
         this.orderRepository = orderRepository;
         this.orderOutboxRepository = orderOutboxRepository;
-        this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -64,7 +51,13 @@ public class PlaceOrderService {
                         .toList()
         );
 
-        orderOutboxRepository.save(OrderOutbox.pending(event.eventId(), OrderCreatedEvent.class.getSimpleName(), writePayload(event)));
+        orderOutboxRepository.save(OrderOutbox.of(
+                event.eventId(),
+                Order.class.getSimpleName(),
+                order.getId().toString(),
+                OrderCreatedEvent.class.getSimpleName(),
+                writePayload(event)
+        ));
 
         return new CreateOrderResponse(orderNumber, order.getStatus(), "주문이 접수되었습니다.");
     }
@@ -77,25 +70,11 @@ public class PlaceOrderService {
         }
     }
 
-    @Scheduled(fixedDelayString = "${order.outbox.poll-interval:1000}")
-    @Transactional
-    public void publishOutbox() {
-        List<OrderOutbox> pending = orderOutboxRepository.findTop10ByStatusOrderByCreatedAtAsc(OrderOutbox.Status.PENDING);
-        pending.forEach(outbox -> {
-            try {
-                OrderCreatedEvent event = objectMapper.readValue(outbox.getPayload(), OrderCreatedEvent.class);
-                ProducerRecord<String, OrderCreatedEvent> record = new ProducerRecord<>(
-                        KafkaTopics.ORDER_CREATED_V1,
-                        event.orderId().toString(),
-                        event
-                );
-                CorrelationContext.set(event.correlationId());
-                CorrelationKafkaHelper.inject(record);
-                kafkaTemplate.send(record);
-                outbox.markSent();
-            } catch (Exception e) {
-                log.error("Outbox publish 실패 eventId={}", outbox.getEventId(), e);
-            }
-        });
+    /**
+     * Outbox → Kafka 전송은 Debezium Outbox Connector가 담당합니다.
+     * (docker-compose.yml 의 kafka-connect + connectors/order-outbox-connector.json)
+     */
+    private void noopPublishHint() {
+        // CDC 기반이므로 애플리케이션 레벨에서 추가 배치 처리가 필요 없습니다.
     }
 }

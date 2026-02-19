@@ -14,17 +14,24 @@
 | `member-service` | 쿠폰 발급 이벤트 소비, `member_coupon` 업데이트 |
 
 ### 인프라
-- Kafka(KRaft) + Kafka UI
+- Kafka(KRaft) + Kafka UI + Kafka Connect(Debezium Outbox)
 - 서비스별 MySQL 4개 (member/order/event/coupon)
 - 모든 서비스를 한 번에 띄우는 docker-compose 제공
 
 ## 2. 실행 방법
+
+## Debezium Outbox 흐름
+- 주문 서비스는 Outbox 테이블(`order-service/src/main/resources/db/migration/V1__init_order_schema.sql`)에 이벤트만 저장합니다.
+- `kafka-connect` 컨테이너가 Debezium MySQL Connector + Outbox Event Router를 실행하여 `orderdb.order_outbox` 테이블 CDC → Kafka `order.created.v1` 토픽으로 전달합니다.
+- 커넥터 정의: `connectors/order-outbox-connector*.json` (docker-compose가 `connect-init` 컨테이너로 자동 등록).
+- 상태 확인: `curl -s http://localhost:8083/connectors/order-outbox-connector/status | jq`
 
 ### Docker Compose (권장)
 ```bash
 docker compose up -d --build
 ```
 - Kafka UI: <http://localhost:8080>
+- Kafka Connect REST: <http://localhost:8083> (Debezium Outbox 커넥터 상태 확인)
 - member/order/event/coupon 서비스: 각각 8081/8082/8083/8084
 - 종료: `docker compose down -v`
 

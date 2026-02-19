@@ -14,7 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,9 +34,6 @@ class PlaceOrderServiceTest {
     OrderOutboxRepository orderOutboxRepository;
 
     @Mock
-    KafkaTemplate<String, ?> kafkaTemplate;
-
-    @Mock
     ObjectMapper objectMapper;
 
     @InjectMocks
@@ -52,6 +49,7 @@ class PlaceOrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.recalculateTotal();
+            ReflectionTestUtils.setField(order, "id", 1L);
             return order;
         });
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
@@ -64,7 +62,8 @@ class PlaceOrderServiceTest {
         verify(orderOutboxRepository).save(captor.capture());
 
         OrderOutbox outbox = captor.getValue();
-        assertThat(outbox.getStatus()).isEqualTo(OrderOutbox.Status.PENDING);
+        assertThat(outbox.getAggregateType()).isEqualTo(Order.class.getSimpleName());
+        assertThat(outbox.getEventType()).isEqualTo("OrderCreatedEvent");
         assertThat(outbox.getPayload()).isEqualTo("{}");
     }
 }

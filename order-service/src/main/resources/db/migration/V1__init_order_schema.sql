@@ -18,12 +18,10 @@ CREATE TABLE order_items (
 );
 
 CREATE TABLE order_outbox (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    event_id CHAR(36) NOT NULL,
+    event_id CHAR(36) PRIMARY KEY,
+    aggregate_type VARCHAR(100) NOT NULL,
+    aggregate_id VARCHAR(100) NOT NULL,
     event_type VARCHAR(100) NOT NULL,
     payload LONGTEXT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    sent_at TIMESTAMP NULL,
-    UNIQUE KEY uk_order_outbox_event (event_id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

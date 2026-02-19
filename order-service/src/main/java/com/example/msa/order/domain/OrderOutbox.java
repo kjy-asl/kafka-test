@@ -1,6 +1,10 @@
 package com.example.msa.order.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
@@ -8,53 +12,60 @@ import java.time.LocalDateTime;
 @Table(name = "order_outbox")
 public class OrderOutbox {
 
-    public enum Status { PENDING, SENT }
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "event_id", nullable = false, unique = true)
     private String eventId;
+
+    @Column(name = "aggregate_type", nullable = false)
+    private String aggregateType;
+
+    @Column(name = "aggregate_id", nullable = false)
+    private String aggregateId;
 
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
     @Lob
-    @Column(name = "payload", nullable = false)
+    @Column(name = "payload", nullable = false, columnDefinition = "LONGTEXT")
     private String payload;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "sent_at")
-    private LocalDateTime sentAt;
-
     protected OrderOutbox() {
     }
 
-    private OrderOutbox(String eventId, String eventType, String payload, Status status) {
+    private OrderOutbox(String eventId,
+                        String aggregateType,
+                        String aggregateId,
+                        String eventType,
+                        String payload) {
         this.eventId = eventId;
+        this.aggregateType = aggregateType;
+        this.aggregateId = aggregateId;
         this.eventType = eventType;
         this.payload = payload;
-        this.status = status;
         this.createdAt = LocalDateTime.now();
     }
 
-    public static OrderOutbox pending(String eventId, String eventType, String payload) {
-        return new OrderOutbox(eventId, eventType, payload, Status.PENDING);
-    }
-
-    public Long getId() {
-        return id;
+    public static OrderOutbox of(String eventId,
+                                 String aggregateType,
+                                 String aggregateId,
+                                 String eventType,
+                                 String payload) {
+        return new OrderOutbox(eventId, aggregateType, aggregateId, eventType, payload);
     }
 
     public String getEventId() {
         return eventId;
+    }
+
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    public String getAggregateId() {
+        return aggregateId;
     }
 
     public String getEventType() {
@@ -65,20 +76,7 @@ public class OrderOutbox {
         return payload;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public LocalDateTime getSentAt() {
-        return sentAt;
-    }
-
-    public void markSent() {
-        this.status = Status.SENT;
-        this.sentAt = LocalDateTime.now();
     }
 }

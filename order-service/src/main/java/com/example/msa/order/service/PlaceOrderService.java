@@ -58,6 +58,14 @@ public class PlaceOrderService {
                 OrderCreatedEvent.class.getSimpleName(),
                 writePayload(event)
         ));
+        /*
+         * ⚠️ 여기서는 KafkaTemplate을 호출하지 않습니다.
+         *  - docker-compose.yml 이 kafka-connect + connect-init 컨테이너를 기동하면서
+         *    connectors/order-outbox-connector*.json 을 Kafka Connect REST API에 등록합니다.
+         *  - Debezium Outbox Event Router는 orderdb.order_outbox 테이블의 binlog를 CDC 하면서
+         *    transforms.outbox.route.topic.replacement 로 지정된 `order.created.v1` 토픽으로 payload를 전달합니다.
+         *  - 따라서 애플리케이션은 Outbox 레코드만 저장하면 되고, 커넥터가 Kafka publish 책임을 집니다.
+         */
 
         return new CreateOrderResponse(orderNumber, order.getStatus(), "주문이 접수되었습니다.");
     }

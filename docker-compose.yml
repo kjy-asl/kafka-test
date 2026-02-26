@@ -198,6 +198,9 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    # Debezium Outbox Connector는 이 컨테이너에서 실행된다.
+    # connectors/order-outbox-connector*.json 에 설정된 transforms.outbox.route.topic.replacement 값이
+    # order_outbox CDC 레코드를 Kafka `order.created.v1` 토픽으로 라우팅한다.
 
   connect-init:
     image: curlimages/curl:8.8.0
@@ -211,6 +214,8 @@ services:
         condition: service_started
       order-db:
         condition: service_started
+    # compose up 시점에 Kafka Connect REST API에 Outbox 커넥터를 자동 등록/갱신한다.
+    # 덕분에 order-service 는 Outbox insert 만 하고, 커넥터가 Kafka publish 를 담당한다.
     entrypoint: ["/bin/sh","-c","set -e; until curl -sf http://kafka-connect:8083/connectors >/dev/null; do sleep 5; done; if curl -sf http://kafka-connect:8083/connectors/order-outbox-connector >/dev/null; then curl -s -X PUT http://kafka-connect:8083/connectors/order-outbox-connector/config -H 'Content-Type: application/json' --data @/connectors/order-outbox-connector-config.json; else curl -s -X POST http://kafka-connect:8083/connectors -H 'Content-Type: application/json' --data @/connectors/order-outbox-connector.json; fi; sleep 2"]
     restart: "no"
 

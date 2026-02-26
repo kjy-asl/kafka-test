@@ -1,31 +1,52 @@
+# Debezium Outbox Connector 등록 요청
+# - connect-init 컨테이너가 docker-compose 기동 시 이 파일을 Kafka Connect REST API에 POST 합니다.
+# - connect-init 는 '#' 로 시작하는 주석 라인을 제거한 뒤 전송하므로, 아래 설명을 자유롭게 확장할 수 있습니다.
+# - 이 파일은 "name" + "config" 구조이며, Outbox 테이블 -> Kafka 토픽(`order.created.v1`) 경로를 정의합니다.
 {
   "name": "order-outbox-connector",
+  # connector.class 가 Debezium MySQL 커넥터 구현체라는 뜻입니다.
   "config": {
+    # order-service 의 MySQL(=order-db 컨테이너)에 붙어서 binlog 를 읽습니다.
     "connector.class": "io.debezium.connector.mysql.MySqlConnector",
     "database.hostname": "order-db",
     "database.port": "3306",
     "database.user": "root",
     "database.password": "root",
+    # server.id 는 MySQL replication client 식별자, cluster 내 unique 해야 합니다.
     "database.server.id": "223344",
+    # server.name 은 Kafka record 의 prefix(orderdb.*) 로 사용되어 schema/topic 파생 근거가 됩니다.
     "database.server.name": "orderdb",
+    # Debezium 은 기본적으로 database.server.name + table 이름 조합으로 토픽을 만들지만,
+    # Outbox Event Router 를 사용할 것이므로 topic.prefix 는 schema history 저장 용도로만 쓰입니다.
     "topic.prefix": "orderdb",
+    # Outbox 테이블만 CDC 대상에 포함시킵니다.
     "table.include.list": "orderdb.order_outbox",
     "include.schema.changes": "false",
+    # schema history 를 Kafka topic 에 저장하여 커넥터 재시작에도 테이블 메타데이터를 복원합니다.
     "database.history": "io.debezium.relational.history.KafkaDatabaseHistory",
     "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
     "schema.history.internal.kafka.topic": "schema-changes.orderdb",
+    # Outbox Event Router transform: order_outbox 행을 비즈니스 이벤트로 매핑합니다.
     "transforms": "outbox",
     "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    # aggregate_id 컬럼을 Kafka message key 로 사용 → 멱등/파티셔닝 유지.
     "transforms.outbox.table.field.event.key": "aggregate_id",
+    # payload 컬럼(JSON) 전체를 Kafka message value 로 전달.
     "transforms.outbox.table.field.event.payload": "payload",
+    # event_id 는 이벤트 고유 식별자로 CDC side 에서도 추적할 수 있습니다.
     "transforms.outbox.table.field.event.id": "event_id",
+    # 이 값이 실제 Kafka 토픽 이름입니다. 주문이 저장되면 Debezium 이 order.created.v1 로 publish 합니다.
     "transforms.outbox.route.topic.replacement": "order.created.v1",
+    # 추가로 event_type / aggregate_type 을 Kafka header 로 노출하여 downstream 에서 조건 분기 가능.
     "transforms.outbox.additional.fields": "event_type:eventType,aggregate_type:aggregateType",
+    # JSON 직렬화를 사용하여 schema registry 없이 학습 환경을 간단히 유지합니다.
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false",
     "key.converter.schemas.enable": "false",
+    # heartbeat 는 커넥터가 살아있음을 확인하기 위한 internal topic ping 간격(ms)
     "heartbeat.interval.ms": "1000",
+    # database.include.list 로 손쉽게 멀티 스키마를 제한할 수 있지만 여기서는 orderdb 만 대상으로 합니다.
     "database.include.list": "orderdb"
   }
 }

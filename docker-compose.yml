@@ -216,7 +216,31 @@ services:
         condition: service_started
     # compose up 시점에 Kafka Connect REST API에 Outbox 커넥터를 자동 등록/갱신한다.
     # 덕분에 order-service 는 Outbox insert 만 하고, 커넥터가 Kafka publish 를 담당한다.
-    entrypoint: ["/bin/sh","-c","set -e; until curl -sf http://kafka-connect:8083/connectors >/dev/null; do sleep 5; done; if curl -sf http://kafka-connect:8083/connectors/order-outbox-connector >/dev/null; then curl -s -X PUT http://kafka-connect:8083/connectors/order-outbox-connector/config -H 'Content-Type: application/json' --data @/connectors/order-outbox-connector-config.json; else curl -s -X POST http://kafka-connect:8083/connectors -H 'Content-Type: application/json' --data @/connectors/order-outbox-connector.json; fi; sleep 2"]
+    # '#' 로 시작하는 주석 라인을 제거한 뒤 POST/PUT 하도록 sanitize 함수를 사용한다.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+          set -e
+          sanitize(){ sed '/^[[:space:]]*#/d' "$1" > "$2"; }
+
+          until curl -sf http://kafka-connect:8083/connectors >/dev/null; do sleep 5; done
+
+          TMP_POST=$(mktemp)
+          TMP_PUT=$(mktemp)
+          sanitize /connectors/order-outbox-connector.json "$TMP_POST"
+          sanitize /connectors/order-outbox-connector-config.json "$TMP_PUT"
+
+          if curl -sf http://kafka-connect:8083/connectors/order-outbox-connector >/dev/null; then
+            curl -s -X PUT http://kafka-connect:8083/connectors/order-outbox-connector/config \
+              -H 'Content-Type: application/json' --data-binary @"$TMP_PUT"
+          else
+            curl -s -X POST http://kafka-connect:8083/connectors \
+              -H 'Content-Type: application/json' --data-binary @"$TMP_POST"
+          fi
+
+          rm -f "$TMP_POST" "$TMP_PUT"
+          sleep 2
     restart: "no"
 
 volumes:

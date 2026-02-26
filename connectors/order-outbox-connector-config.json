@@ -1,3 +1,7 @@
+# 커넥터 설정(Update 용)
+# - 커넥터가 이미 존재할 경우 connect-init 이 PUT /connectors/{name}/config 로 덮어쓰기 위해 사용합니다.
+# - 위 order-outbox-connector.json 과 동일한 필드를 담지만 "name" 없이 config 만 있습니다.
+# - '#' 로 시작하는 주석은 connect-init 이 자동으로 제거한 뒤 Kafka Connect 로 전달합니다.
 {
   "connector.class": "io.debezium.connector.mysql.MySqlConnector",
   "database.hostname": "order-db",

@@ -30,6 +30,12 @@ public class Event {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "max_participation", nullable = false)
+    private int maxParticipation = 100;
+
+    @Column(name = "current_participation", nullable = false)
+    private int currentParticipation = 0;
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventCondition> conditions = new ArrayList<>();
 
@@ -85,5 +91,21 @@ public class Event {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getMaxParticipation() {
+        return maxParticipation;
+    }
+
+    public int getCurrentParticipation() {
+        return currentParticipation;
+    }
+
+    public void setMaxParticipation(int maxParticipation) {
+        this.maxParticipation = maxParticipation;
+    }
+
+    public void setCurrentParticipation(int currentParticipation) {
+        this.currentParticipation = currentParticipation;
     }
 }
